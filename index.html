@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kişisel Günlüğüm</title>
+    <title>Ortak Bulut Günlüğümüz</title>
     <!-- Tailwind CSS ve Google Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -23,33 +23,54 @@
         }
     </script>
     <style>
-        /* İnce kaydırma çubuğu */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
-        ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans h-screen flex flex-col md:flex-row overflow-hidden">
 
-    <!-- MOBİL MENÜ BAR (TELEFONLARDA GÖRÜNÜR) -->
+    <!-- BULUT ODA GİRİŞİ (İLK SEFERDE GÖRÜNÜR) -->
+    <div id="setupModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 border border-slate-100">
+            <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mb-4">
+                <i data-lucide="cloud-lightning" class="text-indigo-600 w-6 h-6"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-1">Bulut Günlüğüne Bağlan</h3>
+            <p class="text-xs text-slate-500 mb-6">Telefon ve bilgisayarınızın eşitlenmesi için ortak bir şifre belirleyin.</p>
+            
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Adınız / Rumuzunuz</label>
+                    <input id="usernameInput" type="text" placeholder="Örn: Ahmet" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Grup Şifresi (Oda Anahtarı)</label>
+                    <input id="roomKeyInput" type="text" placeholder="Örn: gizligrup2026" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm">
+                    <span class="text-[10px] text-slate-400 block mt-1">Bu şifreyi girdiğiniz tüm cihazlar (telefon, laptop vb.) ortak eşitlenir [1].</span>
+                </div>
+            </div>
+            <button onclick="saveSetup()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all shadow-sm">Bağlantıyı Kur</button>
+        </div>
+    </div>
+
+    <!-- MOBİL MENÜ BAR -->
     <div class="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between z-10">
         <div class="flex items-center gap-2">
             <i data-lucide="book-open" class="text-indigo-600 w-5 h-5"></i>
-            <span class="font-bold text-slate-900">Günlüğüm</span>
+            <span class="font-bold text-slate-900">Bulut Günlük</span>
         </div>
         <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-100 rounded-lg">
             <i data-lucide="menu" class="w-5 h-5"></i>
         </button>
     </div>
 
-    <!-- SOL PANEL: YAZILAR -->
+    <!-- SOL PANEL -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-80 bg-white border-r border-slate-200 flex flex-col h-full transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out flex-shrink-0">
-        <!-- Başlık Bölümü -->
         <div class="p-6 border-b border-slate-100 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <i data-lucide="pencil-line" class="text-indigo-600 w-5 h-5"></i>
-                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Anılarım</h1>
+                <i data-lucide="cloud" class="text-indigo-600 w-5 h-5"></i>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Ortak Günlük</h1>
             </div>
             <div class="flex items-center gap-1">
                 <button onclick="startNewEntry()" class="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors" title="Yeni Yazı">
@@ -61,7 +82,17 @@
             </div>
         </div>
 
-        <!-- Arama Çubuğu -->
+        <!-- Bulut Durum Göstergesi -->
+        <div class="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[10px]">
+            <span id="cloudStatus" class="flex items-center gap-1 text-slate-500">
+                <span class="w-2 h-2 rounded-full bg-slate-300 animate-pulse"></span> Buluta bağlanıyor...
+            </span>
+            <button onclick="loadFromCloud()" class="text-indigo-600 hover:underline flex items-center gap-0.5">
+                <i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i> Yenile
+            </button>
+        </div>
+
+        <!-- Arama -->
         <div class="p-4 border-b border-slate-100">
             <div class="relative">
                 <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-400 w-4 h-4"></i>
@@ -70,46 +101,42 @@
         </div>
 
         <!-- Yazı Listesi -->
-        <div id="entriesList" class="flex-1 overflow-y-auto divide-y divide-slate-100">
-            <!-- JavaScript ile dolacak -->
-        </div>
+        <div id="entriesList" class="flex-1 overflow-y-auto divide-y divide-slate-100"></div>
 
-        <!-- Yedekleme ve Alt Kısım -->
-        <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-between text-xs text-slate-500">
-            <button onclick="exportData()" class="flex items-center gap-1 hover:text-slate-800 transition-colors">
-                <i data-lucide="download" class="w-3.5 h-3.5"></i> Bilgisayara Yedekle
-            </button>
-            <label class="flex items-center gap-1 hover:text-slate-800 cursor-pointer transition-colors">
-                <i data-lucide="upload" class="w-3.5 h-3.5"></i> Yedeği Geri Yükle
-                <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
-            </label>
+        <!-- Alt Bilgi -->
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex flex-col gap-1 text-xs text-slate-500">
+            <div class="flex justify-between items-center">
+                <span id="currentUserLabel" class="font-medium text-slate-700"></span>
+                <button onclick="resetSetup()" class="text-red-500 hover:underline">Bağlantıyı Kes</button>
+            </div>
+            <div class="text-[10px] text-slate-400 truncate" id="currentRoomLabel"></div>
         </div>
     </aside>
 
-    <!-- SAĞ PANEL: OKUMA VE YAZMA ALANI -->
+    <!-- SAĞ PANEL -->
     <main class="flex-1 bg-slate-50 flex flex-col h-full overflow-hidden relative">
 
         <!-- HOŞ GELDİNİZ EKRANI -->
         <div id="welcomeState" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
-            <div class="w-16 h-16 bg-white shadow-sm rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
-                <i data-lucide="book-marked" class="text-indigo-500 w-8 h-8"></i>
+            <div class="w-16 h-16 bg-white shadow-md rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
+                <i data-lucide="cloud-sync" class="text-indigo-500 w-8 h-8"></i>
             </div>
-            <h2 class="text-lg font-semibold text-slate-800">Düşüncelerinizi Kaleme Alın</h2>
-            <p class="text-sm text-slate-500 mt-1 max-w-sm">Yazılarınız doğrudan bilgisayarınıza kaydedilir, internete yüklenmez. Güvenle yazabilirsiniz.</p>
-            <button onclick="startNewEntry()" class="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all">Yeni Yazı Oluştur</button>
+            <h2 class="text-lg font-semibold text-slate-800">Bulut Günlüğünüz Eşitlendi</h2>
+            <p class="text-sm text-slate-500 mt-1 max-w-sm">Buraya ekleyeceğiniz tüm yazılar doğrudan ortak buluta kaydedilir [1].</p>
         </div>
 
-        <!-- OKUMA MODU (YAZININ FULL GÖRÜNECEĞİ YER) -->
+        <!-- OKUMA MODU -->
         <div id="viewState" class="hidden flex-1 overflow-y-auto p-6 md:p-12 flex justify-center">
             <div class="max-w-2xl w-full flex flex-col h-full">
-                <!-- Üst Kontroller -->
                 <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200/60">
                     <div class="flex flex-col gap-1.5">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span id="viewMood" class="text-xs font-semibold bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-md"></span>
-                            <span id="viewDate" class="text-xs text-slate-400"></span>
+                            <span id="viewAuthor" class="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-md text-xs font-semibold"></span>
+                            <span id="viewMood" class="text-xs"></span>
                         </div>
+                        <span id="viewDate" class="text-xs text-slate-400"></span>
                     </div>
+                    
                     <div class="flex gap-2">
                         <button onclick="startEdit()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-all" title="Düzenle">
                             <i data-lucide="edit-3" class="w-4 h-4"></i>
@@ -119,7 +146,7 @@
                         </button>
                     </div>
                 </div>
-                <!-- Yazı Detayı -->
+                
                 <article class="flex-1 pb-16">
                     <h1 id="viewTitle" class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-6 leading-tight"></h1>
                     <div id="viewContent" class="font-serif text-lg md:text-xl leading-relaxed text-slate-700 whitespace-pre-wrap break-words"></div>
@@ -131,10 +158,10 @@
         <div id="editState" class="hidden flex-1 overflow-y-auto p-6 md:p-12 flex justify-center bg-white">
             <div class="max-w-2xl w-full flex flex-col">
                 <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
-                    <h2 id="formStateTitle" class="text-lg font-bold text-slate-900">Günlüğü Kaleme Al</h2>
+                    <h2 id="formStateTitle" class="text-lg font-bold text-slate-900">Günü Kaleme Al</h2>
                     <div class="flex gap-3">
                         <button onclick="cancelEdit()" class="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-medium transition-all">İptal</button>
-                        <button onclick="saveEntry()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-all shadow-sm">Kaydet</button>
+                        <button onclick="saveEntry()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-all shadow-sm">Buluta Kaydet</button>
                     </div>
                 </div>
 
@@ -162,7 +189,7 @@
                     </div>
 
                     <div class="flex-1 flex flex-col">
-                        <textarea id="inputContent" placeholder="Neler yaşadınız? Paragraf sınırı olmadan, dilediğiniz uzunlukta yazabilirsiniz..." class="w-full flex-1 min-h-[300px] border-none focus:outline-none resize-none font-serif text-lg leading-relaxed text-slate-700 placeholder-slate-300"></textarea>
+                        <textarea id="inputContent" placeholder="Buluta kaydetmek için buraya yazın..." class="w-full flex-1 min-h-[300px] border-none focus:outline-none resize-none font-serif text-lg leading-relaxed text-slate-700 placeholder-slate-300"></textarea>
                     </div>
                 </div>
             </div>
@@ -171,28 +198,117 @@
     </main>
 
     <script>
-        // Bilgisayara kaydetmek için LocalStorage kullanıyoruz [1]
-        let entries = JSON.parse(localStorage.getItem('my_perfect_local_diary')) || [];
+        let entries = [];
         let activeEntryId = null;
-
-        // Eğer hiç yazı yoksa örnek bir yazı oluşturulur
-        if (entries.length === 0) {
-            entries = [{
-                id: 'welcome-entry',
-                title: 'Günlüğüme Hoş Geldiniz ✍️',
-                content: 'Bu günlük tamamen sizin bilgisayarınıza özeldir. Yazdığınız tüm anılar tarayıcınızın hafızasında saklanır.\n\nYeni bir yazı oluşturmak için sol üstteki "+" butonuna basabilirsiniz. İstediğiniz kadar uzun yazabilirsiniz, herhangi bir sınır yoktur.',
-                date: new Date().toISOString().split('T')[0],
-                mood: 'Sakin'
-            }];
-            localStorage.setItem('my_perfect_local_diary', JSON.stringify(entries));
-        }
+        let currentUser = localStorage.getItem('db_username') || '';
+        let roomKey = localStorage.getItem('db_room_key') || '';
 
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            renderEntries();
+            checkSetup();
         });
 
-        // Yazıları Menüde Listeleme
+        function checkSetup() {
+            if (!currentUser || !roomKey) {
+                document.getElementById('setupModal').classList.remove('hidden');
+            } else {
+                document.getElementById('currentUserLabel').innerText = "Yazar: " + currentUser;
+                document.getElementById('currentRoomLabel').innerText = "Oda: " + roomKey;
+                loadFromCloud();
+            }
+        }
+
+        function saveSetup() {
+            const name = document.getElementById('usernameInput').value.trim();
+            const key = document.getElementById('roomKeyInput').value.trim();
+
+            if (name && key) {
+                // Sadece harf, rakam ve alt çizgi kabul edelim (Güvenli URL için)
+                const safeKey = key.replace(/[^a-zA-Z0-9_]/g, "");
+                if (safeKey.length < 4) {
+                    alert("Şifre en az 4 karakterden oluşmalı ve özel karakter içermemelidir.");
+                    return;
+                }
+
+                currentUser = name;
+                roomKey = safeKey;
+                localStorage.setItem('db_username', name);
+                localStorage.setItem('db_room_key', safeKey);
+                
+                document.getElementById('setupModal').classList.add('hidden');
+                document.getElementById('currentUserLabel').innerText = "Yazar: " + currentUser;
+                document.getElementById('currentRoomLabel').innerText = "Oda: " + roomKey;
+                
+                loadFromCloud();
+            } else {
+                alert("Lütfen iki alanı da doldurun.");
+            }
+        }
+
+        function resetSetup() {
+            if (confirm("Bulut bağlantısını kesmek istediğinize emin misiniz? (Cihazınızdaki veriler kaybolmaz ancak farklı bir odaya geçebilirsiniz)")) {
+                localStorage.removeItem('db_username');
+                localStorage.removeItem('db_room_key');
+                location.reload();
+            }
+        }
+
+        // ==========================================
+        // BULUTTAN VERİ ÇEKME (GET) [1]
+        // ==========================================
+        async function loadFromCloud() {
+            updateStatus('syncing', 'Bağlanıyor...');
+            try {
+                // kvdb.io ücretsiz ve sıfır kurulumlu bulut KV veritabanıdır
+                const response = await fetch(`https://kvdb.io/${roomKey}/entries`);
+                if (response.status === 404) {
+                    // Henüz hiç kayıt yoksa boş dizi kabul et
+                    entries = [];
+                } else if (response.ok) {
+                    entries = await response.json();
+                }
+                updateStatus('success', 'Eşitlendi');
+                renderEntries();
+            } catch (e) {
+                console.error(e);
+                updateStatus('error', 'Bağlantı Hatası!');
+            }
+        }
+
+        // ==========================================
+        // BULUTA VERİ YAZMA (POST) [1]
+        // ==========================================
+        async function saveToCloud() {
+            updateStatus('syncing', 'Kaydediliyor...');
+            try {
+                const response = await fetch(`https://kvdb.io/${roomKey}/entries`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entries)
+                });
+                if (response.ok) {
+                    updateStatus('success', 'Eşitlendi');
+                } else {
+                    updateStatus('error', 'Hata Oluştu!');
+                }
+            } catch (e) {
+                console.error(e);
+                updateStatus('error', 'Hata Oluştu!');
+            }
+        }
+
+        function updateStatus(type, message) {
+            const statusEl = document.getElementById('cloudStatus');
+            if (type === 'syncing') {
+                statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> ${message}`;
+            } else if (type === 'success') {
+                statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${message}`;
+            } else {
+                statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> ${message}`;
+            }
+        }
+
+        // Listeleme
         function renderEntries() {
             const listContainer = document.getElementById('entriesList');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -210,7 +326,7 @@
             filtered.forEach(entry => {
                 const isActive = entry.id === activeEntryId;
                 const formattedDate = formatDateString(entry.date);
-                const shortContent = entry.content ? entry.content.substring(0, 60) + '...' : '';
+                const shortContent = entry.content ? entry.content.substring(0, 50) + '...' : '';
 
                 const item = document.createElement('div');
                 item.className = `p-4 cursor-pointer border-l-4 transition-all hover:bg-slate-50 ${
@@ -227,14 +343,17 @@
                         <span class="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-semibold">${entry.mood || 'Sakin'}</span>
                     </div>
                     <h3 class="font-semibold text-slate-900 text-xs mb-1 truncate">${entry.title || 'Başlıksız'}</h3>
-                    <p class="text-[11px] text-slate-500 line-clamp-1">${shortContent}</p>
+                    <p class="text-[11px] text-slate-500 line-clamp-1 mb-2">${shortContent}</p>
+                    <div class="flex items-center gap-1 text-[10px] text-indigo-600 font-medium">
+                        <i data-lucide="user" class="w-3 h-3"></i> ${entry.author === currentUser ? 'Sen' : entry.author}
+                    </div>
                 `;
                 listContainer.appendChild(item);
             });
             lucide.createIcons();
         }
 
-        // Yazı Detayını Gösterme (FULL GÖRÜNÜM)
+        // Okuma Modu
         function selectEntry(id, changeState = true) {
             activeEntryId = id;
             const entry = entries.find(e => e.id === id);
@@ -250,11 +369,19 @@
             document.getElementById('viewContent').innerText = entry.content || '';
             document.getElementById('viewDate').innerText = formatDateString(entry.date);
             document.getElementById('viewMood').innerText = getMoodEmoji(entry.mood) + ' ' + (entry.mood || 'Sakin');
+            document.getElementById('viewAuthor').innerText = "Yazan: " + entry.author;
+
+            const controls = document.getElementById('authorControls');
+            if (entry.author === currentUser) {
+                controls.classList.remove('hidden');
+            } else {
+                controls.classList.add('hidden');
+            }
 
             renderEntries();
         }
 
-        // Yeni Yazı Ekranı
+        // Yeni Yazı
         function startNewEntry() {
             activeEntryId = null;
             document.getElementById('welcomeState').classList.add('hidden');
@@ -269,10 +396,10 @@
             document.getElementById('inputTitle').focus();
         }
 
-        // Düzenleme Ekranı
+        // Düzenleme
         function startEdit() {
             const entry = entries.find(e => e.id === activeEntryId);
-            if (!entry) return;
+            if (!entry || entry.author !== currentUser) return;
 
             document.getElementById('viewState').classList.add('hidden');
             document.getElementById('editState').classList.remove('hidden');
@@ -293,93 +420,62 @@
             }
         }
 
-        // Kaydetme İşlemi (Yerel Hafızaya)
-        function saveEntry() {
+        // Kaydetme ve Eşitleme
+        async function saveEntry() {
             const title = document.getElementById('inputTitle').value.trim() || 'Başlıksız';
             const content = document.getElementById('inputContent').value.trim();
             const date = document.getElementById('inputDate').value;
             const mood = document.getElementById('inputMood').value;
 
             if (!content) {
-                alert("İçerik alanı boş bırakılamaz.");
+                alert("İçerik boş bırakılamaz.");
                 return;
             }
+
+            const data = {
+                id: activeEntryId || 'entry-' + Date.now(),
+                title,
+                content,
+                date,
+                mood,
+                author: currentUser
+            };
 
             if (activeEntryId) {
                 const index = entries.findIndex(e => e.id === activeEntryId);
                 if (index !== -1) {
-                    entries[index] = { id: activeEntryId, title, content, date, mood };
+                    entries[index] = data;
                 }
             } else {
-                const newId = 'entry-' + Date.now();
-                entries.push({ id: newId, title, content, date, mood });
-                activeEntryId = newId;
+                entries.push(data);
+                activeEntryId = data.id;
             }
 
-            localStorage.setItem('my_perfect_local_diary', JSON.stringify(entries));
             renderEntries();
             selectEntry(activeEntryId);
+            await saveToCloud(); // Buluta gönder [1]
         }
 
-        // Silme İşlemi
-        function deleteActiveEntry() {
+        // Silme
+        async function deleteActiveEntry() {
             if (!activeEntryId) return;
+            const entry = entries.find(e => e.id === activeEntryId);
+            if (entry.author !== currentUser) return;
 
-            if (confirm("Bu yazıyı kalıcı olarak silmek istediğinizden emin misiniz?")) {
+            if (confirm("Bu yazıyı hem laptobunuzdan hem de buluttan kalıcı olarak silmek istiyor musunuz?")) {
                 entries = entries.filter(e => e.id !== activeEntryId);
                 activeEntryId = null;
-                localStorage.setItem('my_perfect_local_diary', JSON.stringify(entries));
                 renderEntries();
                 document.getElementById('viewState').classList.add('hidden');
                 document.getElementById('welcomeState').classList.remove('hidden');
+                await saveToCloud(); // Buluttan sil [1]
             }
         }
 
-        // Bilgisayara Dosya Olarak Yedekleme
-        function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(entries, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `gunluk_yedek_${new Date().toISOString().split('T')[0]}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        // Yedeği Geri Yükleme
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (Array.isArray(imported)) {
-                        if (confirm("Mevcut tüm günlüklerinizin silinip yedek dosyasının yüklenmesini onaylıyor musunuz?")) {
-                            entries = imported;
-                            localStorage.setItem('my_perfect_local_diary', JSON.stringify(entries));
-                            renderEntries();
-                            document.getElementById('viewState').classList.add('hidden');
-                            document.getElementById('welcomeState').classList.remove('hidden');
-                            alert("Yedek başarıyla yüklendi!");
-                        }
-                    } else {
-                        alert("Geçersiz dosya formatı.");
-                    }
-                } catch (err) {
-                    alert("Dosya okunurken bir hata oluştu.");
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        // Telefonlar İçin Menü Aç/Kapat
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('-translate-x-full');
         }
 
-        // Yardımcı Fonksiyonlar
         function formatDateString(dateStr) {
             if (!dateStr) return '';
             const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' };
